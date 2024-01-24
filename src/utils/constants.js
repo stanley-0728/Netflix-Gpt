@@ -5,3 +5,4 @@ export const SUPPORTED_LANG = [
   { identifier: "tamil", name: "Tamil" },
   { identifier: "Bangla", name: "Bengali" },
 ];
+

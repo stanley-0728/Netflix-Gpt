@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import auth from "../utils/firebase.js";
+import { auth } from "../utils/firebase.js";
 import { useNavigate } from "react-router-dom";
 import { addUser, removeUser } from "../utils/UserSlice.js";
 import { FaUserTie } from "react-icons/fa";
@@ -59,7 +59,7 @@ const Header = () => {
   };
 
   return (
-    <div className="absolute bg-gradient-to-b from-black top-0 w-full h-20 z-50 flex justify-between ">
+    <div className="absolute flex-col bg-gradient-to-b from-black top-0 w-full h-20 z-50 flex justify-between ">
       <div className="px-8 py-4">
         <img
           className="w-[130px] md:[200px]"
@@ -69,7 +69,7 @@ const Header = () => {
       </div>
       {user && (
         <div className="m-4  -z-2 absolute right-10 ">
-          <div className="flex gap-2">
+          <div className="flex gap-2 ">
             {showGptSearch && (
               <select
                 className="p-0 w-15 m-2 bg-gray-700 text-white"
