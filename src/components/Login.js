@@ -1,52 +1,145 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import Header from "./Header";
-
+import { checkValidate } from "../utils/Validation";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import auth from "../utils/firebase.js";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/UserSlice.js";
 const Login = () => {
   const [isSignIn, setIsSignIn] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const navigate = useNavigate();
+  const email = useRef(null);
+  const password = useRef(null);
+  const name = useRef(null);
+  const dispatch = useDispatch();
+  const handleButton = () => {
+    const message = checkValidate(email.current.value, password.current.value);
+    setErrorMessage(message);
+    if (message) return;
+    if (!isSignIn) {
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+          updateProfile(user, {
+            displayName: name.current.value,
+            photoURL: "https://example.com/jane-q-user/profile.jpg",
+          })
+            .then(() => {
+              // Profile updated!
+              // .
+              const { uid, email, displayName } = auth.currentUser;
+              dispatch(
+                addUser({ uid: uid, email: email, displayName: displayName })
+              );
+              navigate("/browse");
+            })
+            .catch((error) => {
+              // An error occurred
+              // ...
+              setErrorMessage(error.message);
+            });
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorCode + " " + errorMessage);
+          // ..
+        });
+    } else {
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value
+      )
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+        });
+    }
+  };
   const toggleHandler = () => {
-    console.log("hi");
     setIsSignIn(!isSignIn);
+    email.current.value = null;
+    password.current.value = null;
+
+    setErrorMessage(null);
   };
   return (
     <div>
       <Header />
-      <div className="absolute">
+      <div className="absolute ">
         <img
           alt="banner"
+          className=" h-[900px] w-screen  bg-cover bg-center object-cover "
           src="https://assets.nflxext.com/ffe/siteui/vlv3/7ca5b7c7-20aa-42a8-a278-f801b0d65fa1/fb548c0a-8582-43c5-9fba-cd98bf27452f/IN-en-20240326-popsignuptwoweeks-perspective_alpha_website_large.jpg"
         />
       </div>
       <form
-        className="bg-black  rounded-lg bg-opacity-80
-      absolute w-1/3 mx-auto my-36 right-0 left-0 p-12 text-white"
+        onSubmit={(e) => e.preventDefault()}
+        className=" absolute   w-12/12 sm:w-6/12 
+         bg-black bg-opacity-75 my-32 mx-auto left-0 right-0 p-20 rounded-lg text-white"
       >
-        <h1 className="font-bold text-2xl py-4">
+        <h1 className="font-bold text-3xl pb-4 text-white">
           {isSignIn ? "Sign In" : "Sign Up"}
         </h1>
         {!isSignIn && (
           <input
             type="text"
+            ref={name}
             placeholder="Enter User Name"
-            className="p-4 my-4 w-full bg-gray-700"
+            className={`p-4 my-2 w-full rounded-md bg-transparent ${
+              errorMessage?.email ? "border-red-700" : "border-white"
+            }  `}
           />
         )}
         <input
           type="text"
+          ref={email}
           placeholder="Enter email"
-          className="p-4 my-4 w-full bg-gray-700"
+          className={`p-4 my-2 w-full rounded-md bg-transparent ${
+            errorMessage?.email ? "border-red-700" : "border-white"
+          }  `}
         />
+        {errorMessage?.email && (
+          <p className="text-red-600 py-2 text-xl">{errorMessage?.email}</p>
+        )}
         <input
           type="password"
+          ref={password}
           placeholder="Enter password"
-          className="p-4 my-4 w-full bg-gray-700"
+          className={`p-4 my-4 w-full bg-transparent border ${
+            errorMessage?.password ? "border-red-700" : "border-white"
+          }  `}
         />
-        <button className="bg-red-700 p-4 my-6 w-full ">
+        {errorMessage?.password && (
+          <p className="text-red-600 py-2 text-xl">{errorMessage?.password}</p>
+        )}
+
+        <button className="bg-red-700 py-4 my-4 w-full " onClick={handleButton}>
           {isSignIn ? "Sign In" : "Sign Up"}
         </button>
-        <p className="py-4 cursor-pointer" onClick={toggleHandler}>
-          {isSignIn
-            ? "New to Netflix? Sign Up"
-            : "Already have an account? Sign In"}
+        <p className="text-gray-400 text-center">
+          {isSignIn ? "New to Netflix?" : "Already registered?"}{" "}
+          <span className="text-white cursor-pointer " onClick={toggleHandler}>
+            {isSignIn ? "Sign up now" : "Sign In now"}
+          </span>
         </p>
       </form>
     </div>
