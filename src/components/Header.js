@@ -1,55 +1,96 @@
-import React from "react";
-import { useSelector } from "react-redux";
-import { signOut } from "firebase/auth";
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import auth from "../utils/firebase.js";
 import { useNavigate } from "react-router-dom";
+import { addUser, removeUser } from "../utils/UserSlice.js";
+import { FaUserTie } from "react-icons/fa";
 const Header = () => {
   const user = useSelector((store) => store.user);
+  const [showMenu, setShowMenu] = useState(false);
+
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const handleSignOut = () => {
+  const handleMenu = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowMenu(!showMenu);
+  };
+  const handleLogOut = () => {
     signOut(auth)
-      .then(() => {
-        navigate("/");
-      })
+      .then(() => {})
       .catch((error) => {});
   };
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/auth.user
+        const { uid, email, displayName, photoURL } = user;
+        dispatch(
+          addUser({
+            uid: uid,
+            email: email,
+            displayName: displayName,
+            photoURL: photoURL,
+          })
+        );
+        navigate("/browse");
+        // ...
+      } else {
+        // User is signed out
+        // ...
+        dispatch(removeUser());
+        navigate("/");
+      }
+      return () => unsubscribe();
+    });
+  }, []);
+
   return (
-    <div className="flex  justify-between px-5 py-2 absolute bg-gradient-to-b from-black w-screen z-10 ">
-      <div className="w-40 md:w-48">
+    <div className="absolute bg-gradient-to-b from-black top-0 w-full h-20 z-50 flex justify-between ">
+      <div className="px-8 py-4">
         <img
+          className="w-[130px] md:[200px]"
           src="https://cdn.cookielaw.org/logos/dd6b162f-1a32-456a-9cfe-897231c7763c/4345ea78-053c-46d2-b11e-09adaef973dc/Netflix_Logo_PMS.png"
-          className=""
-          alt="NetflixGPT"
+          alt="Logo"
         />
       </div>
-
-      <div className=" my-4 text-white rounded-sm flex">
-        {user && (
-          <div>
-            {/* {GPTSearchStatus &&
-              <select name="" onChange={handleLangChange} id="" className="sm:px-2 px-1 capitalize py-0.5 mr-4 text-sm outline-none rounded bg-cyan-950  text-cyan-600  border-cyan-600 border-2">
-                {SUPPORTED_LAGUAGES.map((data) => (
-                  <option value={data} key={data} className="capitalize">{data}</option>
-
-                ))}
-
-              </select>
-            } */}
-            {/* <button
-              className="px-2 py-1 bg-cyan-950 text-cyan-600 border-cyan-600 border-2 mr-4 rounded text-sm sm:font-bold "
-              onClick={handleGPTBtn}
+      {user && (
+        <div className="m-4 absolute right-8">
+          <button
+            onClick={handleMenu}
+            type="button"
+            className=" text-sm bg-red-700 rounded-full md:me-0 px-2 py-2 text-white"
+          >
+            <FaUserTie className="text-3xl text-white-400" />
+          </button>
+          {showMenu && (
+            <div
+              className="  my-2 list-none bg-gray-600 divide-y divide-gray-400 rounded-lg shadow-lg "
+              id="user-dropdown"
             >
-              {GPTSearchStatus ? "Home" : "GPT Search"}
-            </button> */}
-            <button
-              className="px-2 py-1 bg-red-600 text-white mr-4 rounded text-sm sm:font-bold "
-              onClick={handleSignOut}
-            >
-              Sign Out
-            </button>
-          </div>
-        )}
-      </div>
+              <div class="px-4 py-3">
+                <span class="block text-sm text-gray-900 dark:text-white">
+                  {user?.displayName}
+                </span>
+                <span class="block text-sm  text-gray-500 truncate dark:text-gray-400">
+                  {user?.email}
+                </span>
+              </div>
+              <ul class="py-2">
+                <li
+                  onClick={handleLogOut}
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-transparent
+                  dark:hover:bg-gray-500 dark:text-gray-200 dark:hover:text-white"
+                >
+                  Log out
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

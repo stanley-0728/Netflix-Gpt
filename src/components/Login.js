@@ -7,13 +7,12 @@ import {
   updateProfile,
 } from "firebase/auth";
 import auth from "../utils/firebase.js";
-import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/UserSlice.js";
 const Login = () => {
   const [isSignIn, setIsSignIn] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
-  const navigate = useNavigate();
+
   const email = useRef(null);
   const password = useRef(null);
   const name = useRef(null);
@@ -33,7 +32,8 @@ const Login = () => {
           const user = userCredential.user;
           updateProfile(user, {
             displayName: name.current.value,
-            photoURL: "https://example.com/jane-q-user/profile.jpg",
+            photoURL:
+              "https://www.google.co.in/url?sa=i&url=https%3A%2F%2Fcommons.wikimedia.org%2Fwiki%2FFile%3ANetflix-avatar.png&psig=AOvVaw0PYYYWgBP_nEbNVPZxtduI&ust=1712584772456000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCNCT7dKhsIUDFQAAAAAdAAAAABAE",
           })
             .then(() => {
               // Profile updated!
@@ -42,7 +42,6 @@ const Login = () => {
               dispatch(
                 addUser({ uid: uid, email: email, displayName: displayName })
               );
-              navigate("/browse");
             })
             .catch((error) => {
               // An error occurred
@@ -66,6 +65,7 @@ const Login = () => {
         .then((userCredential) => {
           // Signed in
           const user = userCredential.user;
+
           // ...
         })
         .catch((error) => {
@@ -93,7 +93,7 @@ const Login = () => {
       </div>
       <form
         onSubmit={(e) => e.preventDefault()}
-        className=" absolute   w-12/12 sm:w-6/12 
+        className=" absolute   w-11/12 sm:w-6/12  lg:w-4/12
          bg-black bg-opacity-75 my-32 mx-auto left-0 right-0 p-20 rounded-lg text-white"
       >
         <h1 className="font-bold text-3xl pb-4 text-white">
