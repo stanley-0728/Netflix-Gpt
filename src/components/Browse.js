@@ -1,14 +1,24 @@
 import React from "react";
 import Header from "./Header";
-import { useSelector } from "react-redux";
 import MainContainer from "./MainContainer";
 import SecondaryContainer from "./SecondaryContainer";
+import useNowPlaying from "../utils/useNowPlaying";
+import { useSelector } from "react-redux";
+import GptSearchPage from "./GptSearchPage";
 const Browse = () => {
-  const user = useSelector((store) => store.user);
-
+  const showGptSearch = useSelector((store) => store.gpt.showGpt);
+  useNowPlaying();
   return (
     <div>
       <Header />
+      {showGptSearch ? (
+        <GptSearchPage />
+      ) : (
+        <>
+          <MainContainer />
+          <SecondaryContainer />
+        </>
+      )}
       {/* 
         MainContainer
           VideoBackground
@@ -17,8 +27,6 @@ const Browse = () => {
           MovieList*n
             MovieCards
       */}
-      <MainContainer />
-      <SecondaryContainer />
     </div>
   );
 };
